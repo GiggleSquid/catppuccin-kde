@@ -2,25 +2,12 @@
 
 # Syntax <Flavour = 1-4 > <Accent = 1-14> <WindowDec = 1/2> <Debug = aurorae/global/color/splash/cursor>
 
-check_command_exists() {
-  command_name="${*}"
+COLORDIR="$out/share/color-schemes"
+AURORAEDIR="$out/share/aurorae/themes"
+LOOKANDFEELDIR="$out/share/plasma/look-and-feel"
+CURSORDIR="$out/share/icons"
 
-  if ! command -v "$command_name" >/dev/null 2>&1; then
-    echo "Error: Dependency '$command_name' is not met."
-    echo "Exiting.."
-    exit 1
-  fi
-}
-
-check_command_exists "wget"
-check_command_exists "sed"
-check_command_exists "unzip"
-check_command_exists "lookandfeeltool"
-
-COLORDIR="${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes"
-AURORAEDIR="${XDG_DATA_HOME:-$HOME/.local/share}/aurorae/themes"
-LOOKANDFEELDIR="${XDG_DATA_HOME:-$HOME/.local/share}/plasma/look-and-feel"
-CURSORDIR="${XDG_DATA_HOME:-$HOME/.local/share}/icons"
+CONFIRMATION="y"
 
 echo "Creating theme directories.."
 mkdir -p "$COLORDIR" "$AURORAEDIR" "$LOOKANDFEELDIR" "$CURSORDIR"
@@ -32,8 +19,6 @@ ACCENT="$2"
 WINDECSTYLE="$3"
 DEBUGMODE="$4"
 
-clear
-
 if [ -z "$1" ]; then
     cat <<EOF
 
@@ -44,8 +29,6 @@ Choose flavor out of -
     4. Latte
     (Type the number corresponding to said palette)
 EOF
-    read -r FLAVOUR
-    clear
 fi
 
 case "$FLAVOUR" in
@@ -79,8 +62,6 @@ Choose an accent -
     13. Blue
     14. Lavender
 EOF
-    read -r ACCENT
-    clear
 fi
 
 # Sets accent based on the palette selected (Best to fold this in your respective editor)
@@ -228,8 +209,6 @@ Choose window decoration style -
     1. Modern (Mixed)
     2. Classic (MacOS like)
 EOF
-    read -r WINDECSTYLE
-    clear
 fi
 
 WINDECSTYLENAME=""
@@ -253,7 +232,6 @@ These decorations have a few rules that may cause issues.
  2: If you would like the pin on all desktops button, You need to place it on the left.
 We apologize if you wanted a different configuration :(
 EOF
-        sleep 2
         ;;
     2)
         WINDECSTYLENAME=Classic
@@ -349,12 +327,11 @@ InstallGlobalTheme() {
  WARNING: There might be some errors that might not affect the installer at all during this step, Please advise.
 
 EOF
-    sleep 1
     echo "Installing Global Theme.."
     (
         cd ./dist || exit
-        tar -cf "$GLOBALTHEMENAME".tar.gz "$GLOBALTHEMENAME"
-        kpackagetool6 -i "$GLOBALTHEMENAME".tar.gz
+        # tar -cf "$GLOBALTHEMENAME".tar.gz "$GLOBALTHEMENAME"
+        # kpackagetool6 -i "$GLOBALTHEMENAME".tar.gz
         cp -r "$GLOBALTHEMENAME" "$LOOKANDFEELDIR"
     )
 
@@ -377,7 +354,6 @@ InstallColorscheme() {
 GetCursor() {
     # Fetches cursors
     echo "Downloading Catppuccin Cursors from Catppuccin/cursors..."
-    sleep 2
     wget -q -P ./dist https://github.com/catppuccin/cursors/releases/download/v0.2.0/Catppuccin-"$FLAVOURNAME"-"$ACCENTNAME"-Cursors.zip
     wget -q -P ./dist https://github.com/catppuccin/cursors/releases/download/v0.2.0/Catppuccin-"$FLAVOURNAME"-Dark-Cursors.zip
     (
@@ -398,8 +374,6 @@ case "$DEBUGMODE" in
     "")
         echo
         echo "Install $FLAVOURNAME $ACCENTNAME? with the $WINDECSTYLENAME window Decorations? [y/N]:"
-        read -r CONFIRMATION
-        clear
         ;;
 	aurorae)
 		InstallAuroraeTheme
@@ -436,8 +410,8 @@ if [ "$CONFIRMATION" = "Y" ] || [ "$CONFIRMATION" = "y" ]; then
     # Build Colorscheme
     InstallColorscheme
 
-    echo "Installing Catppuccin Cursor theme.."
-    InstallCursor
+    # echo "Installing Catppuccin Cursor theme.."
+    # InstallCursor
 
     # Cleanup
     echo "Cleaning up.."
@@ -446,11 +420,8 @@ if [ "$CONFIRMATION" = "Y" ] || [ "$CONFIRMATION" = "y" ]; then
     # Apply theme
     echo
     echo "Do you want to apply theme? [y/N]:"
-    read -r CONFIRMATION
 
     if [ "$CONFIRMATION" = "Y" ] || [ "$CONFIRMATION" = "y" ]; then
-        lookandfeeltool -a "$GLOBALTHEMENAME"
-        clear
         # Some legacy apps still look in ~/.icons
         cat <<EOF
 The cursors will fully apply once you log out
@@ -459,7 +430,6 @@ ln -s ~/.local/share/icons/ ~/.icons
 EOF
     else
         echo "You can apply theme at any time using system settings"
-        sleep 1
     fi
 else
     echo "Exiting.."
